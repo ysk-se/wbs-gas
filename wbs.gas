@@ -1,0 +1,101 @@
+// 最後ここにまとめる想定
+function main(){
+  Logger.log('メイン関数');
+  sheet = getUtilSheet('WBS');
+  one = sheet.getRange('A1').getValue();
+  Logger.log(one);
+  date = new Date();
+  date1 = Utilities.formatDate(date, 'JST', 'yy/MM/dd');
+  sheet.getRange('D1').setValue(date1);
+  date2 = Utilities.formatDate(date, 'JST', 'd');
+  sheet.getRange('E1').setValue(date2);
+  date3 = new Date(date.getTime());
+  date3.setDate(date.getDate() + 1);
+  sheet.getRange('F1').setValue(date3);
+} 
+
+// 諸々の初期設定をこの関数で管理する、テンプレートの作成
+// WBSシート、休日設定シート、使用方法シートを作成する予定
+function makeTemplate() {
+}
+
+function getUtilSheet(sheetName) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  return sheet;
+}
+
+function makeSheet(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  inputStartDay = Browser.inputBox('スケジュールの開始日を入力してください(yyyy/MM/dd)');
+  sheet = ss.getSheetByName('WBS');
+  //WBSというシートにテンプレを挿入
+  sheet.getRange('A1').setValue('開始日');
+  sheet.getRange('B1').setValue(inputStartDay);
+  sheet.getRange('R2').setValue(inputStartDay);
+  sheet.getRange('C1').setValue('基準日');
+  sheet.getRange('H3').setValue('予定');
+  sheet.getRange('J3').setValue('実績');
+  sheet.getRange('A4').setValue('項番');
+  sheet.getRange('B4').setValue('大項目');
+  sheet.getRange('C4').setValue('中項目');
+  sheet.getRange('D4').setValue('小項目');
+  sheet.getRange('E4').setValue('備考');
+  sheet.getRange('F4').setValue('担当');
+  sheet.getRange('G4').setValue('予定工数');
+  sheet.getRange('H4').setValue('開始日');
+  sheet.getRange('I4').setValue('終了日');
+  sheet.getRange('J4').setValue('開始日');
+  sheet.getRange('K4').setValue('終了日');
+  sheet.getRange('L4').setValue('進捗率');
+}
+
+function nameget(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const activeSheet = ss.getSheets();
+  const sheetLen = activeSheet.length;
+  for(var i=0; i<sheetLen; i++){
+    Logger.log(activeSheet[i].getSheetName());
+  }
+}
+
+function calender(){
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    sheet = ss.getSheetByName('WBS');
+    cell = sheet.getRange(3, 18);
+    day = '1994/04/12';
+    const ary = ['日', '月', '火', '水', '木', '金', '土']
+    //dayを日付型にする
+    formattedDate = Utilities.parseDate(day, 'JST', 'yyyy/MM/dd');
+    cell.offset(-1, 0).setValue(Utilities.formatDate(formattedDate, 'JST', 'yyyy/MM'));
+    week_num = formattedDate.getDay();
+    cell.offset(1, 0).setValue(ary[week_num]);
+    cell.offset(-1, 0).setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW);
+    cell.offset(-1, 0).setNumberFormat('@');
+    Logger.log(Utilities.formatDate(formattedDate, 'JST', 'yyyy/MM'));
+    Logger.log(formattedDate);
+    const dateRange = 100;
+    for(i=0; i<=dateRange; i++){
+      cell = sheet.getRange(3, 18+i);
+      var tmpDate = formattedDate;
+      if(i===0){
+        tmpDate.setDate(formattedDate.getDate());
+        inputDate = Utilities.formatDate(tmpDate, 'JST', 'd');
+        cell.setValue(inputDate);
+      }else{
+        tmpDate.setDate(formattedDate.getDate() + 1);
+        inputDate = Utilities.formatDate(tmpDate, 'JST', 'd');
+        cell.setValue(inputDate);
+        tmpWeekNum = tmpDate.getDay();
+        cell.offset(1, 0).setValue(ary[tmpWeekNum]);
+        if(inputDate === '1'){
+          Logger.log('check');
+          inputDate = Utilities.formatDate(tmpDate, 'JST', 'yyyy/MM');
+          cell.offset(-1, 0).setValue(inputDate);
+          cell.offset(-1, 0).setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW);
+          cell.offset(-1, 0).setNumberFormat('@');
+        }
+      }
+    }
+    sheet.setColumnWidths(18, dateRange + 1, 22);
+}
